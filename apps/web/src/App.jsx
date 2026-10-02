@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8787";
+const API = import.meta.env.VITE_API_URL || "https://faithlearn-ai.onrender.com";
 
 export default function App() {
   const [messages, setMessages] = useState([
