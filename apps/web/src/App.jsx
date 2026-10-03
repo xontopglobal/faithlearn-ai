@@ -1,15 +1,62 @@
 import React, { useEffect, useState } from "react";
-
+import { supabase } from "./lib/supabase";
 const API =
   import.meta.env.VITE_API_URL || "https://faithlearn-ai.onrender.com";
+const signInWithFacebook = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "facebook",
+    options: {
+      redirectTo: window.location.origin,
+    },
+  });
 
+  if (error) {
+    console.error("Facebook login error:", error);
+    alert(error.message);
+  }
+}; const [session, setSession] = useState(null);
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+  });
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
+
+const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error("Sign out error:", error);
+    alert(error.message);
+  }
+};
 const defaultProfile = {
   name: "Mary",
   age: "10",
   classLevel: "Primary 5",
   favoriteSubject: "Mathematics"
 };
+  {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "facebook",
+    options: {
+      redirectTo: window.location.origin,
+    },
+  });
 
+  if (error) {
+    console.error("Facebook login error:", error);
+    alert(error.message);
+  }
+};
 export default function App() {
   const [profile, setProfile] = useState(() => {
     try {
@@ -75,7 +122,9 @@ Name: ${profile.name}
 Age: ${profile.age}
 Class/Level: ${profile.classLevel}
 Favorite Subject: ${profile.favoriteSubject}
-
+<button onClick={signInWithFacebook}>
+  Continue with Facebook
+</button>
 Student's Request:
 ${text}
 
@@ -122,6 +171,10 @@ Please personalize your response for this student. Explain concepts at an approp
 
   return (
     <div className="app">
+      <button onClick={signInWithFacebook}>
+        Continue with Facebook
+      </button>
+
       <header className="topbar">
         <div className="brand">
           <span className="logo">FL</span>
@@ -133,6 +186,16 @@ Please personalize your response for this student. Explain concepts at an approp
         </div>
 
         <span className="status">● AI Online</span>
+        {session ? (
+          <div className="auth-area">
+            <span>Logged in with Facebook</span>
+            <button onClick={signOut}>Sign out</button>
+          </div>
+        ) : (
+          <button onClick={signInWithFacebook}>
+            Continue with Facebook
+          </button>
+        )}
       </header>
 
       <main className="layout">
@@ -173,12 +236,16 @@ Please personalize your response for this student. Explain concepts at an approp
             <div className="profile-header">
               <div>
                 <b>Student Profile</b>
+
                 <span>
                   {profile.name} • {profile.classLevel}
                 </span>
               </div>
 
-              <button onClick={() => setEditingProfile(true)}>
+              <button
+                type="button"
+                onClick={() => setEditingProfile(true)}
+              >
                 Edit Profile
               </button>
             </div>
@@ -208,6 +275,7 @@ Please personalize your response for this student. Explain concepts at an approp
 
               <label>
                 Student Name
+
                 <input
                   value={profile.name}
                   onChange={(e) =>
@@ -222,6 +290,7 @@ Please personalize your response for this student. Explain concepts at an approp
 
               <label>
                 Age
+
                 <input
                   type="number"
                   min="3"
@@ -239,6 +308,7 @@ Please personalize your response for this student. Explain concepts at an approp
 
               <label>
                 Class / Level
+
                 <input
                   value={profile.classLevel}
                   onChange={(e) =>
@@ -253,6 +323,7 @@ Please personalize your response for this student. Explain concepts at an approp
 
               <label>
                 Favorite Subject
+
                 <input
                   value={profile.favoriteSubject}
                   onChange={(e) =>
@@ -267,12 +338,16 @@ Please personalize your response for this student. Explain concepts at an approp
 
               <div className="profile-actions">
                 <button
+                  type="button"
                   onClick={() => setEditingProfile(false)}
                 >
                   Cancel
                 </button>
 
-                <button onClick={saveProfile}>
+                <button
+                  type="button"
+                  onClick={saveProfile}
+                >
                   Save Profile
                 </button>
               </div>
@@ -309,6 +384,7 @@ Please personalize your response for this student. Explain concepts at an approp
 
           <div className="suggestions">
             <button
+              type="button"
               onClick={() =>
                 setInput(
                   `Show ${profile.name}'s current learning progress`
@@ -319,6 +395,7 @@ Please personalize your response for this student. Explain concepts at an approp
             </button>
 
             <button
+              type="button"
               onClick={() =>
                 setInput(
                   `Create a 3-question ${profile.favoriteSubject} quiz for ${profile.name}`
@@ -329,6 +406,7 @@ Please personalize your response for this student. Explain concepts at an approp
             </button>
 
             <button
+              type="button"
               onClick={() =>
                 setInput(
                   `Teach ${profile.name} fractions in a simple way for a ${profile.age}-year-old`
@@ -353,6 +431,7 @@ Please personalize your response for this student. Explain concepts at an approp
             />
 
             <button
+              type="button"
               onClick={send}
               disabled={busy}
             >
