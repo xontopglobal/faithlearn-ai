@@ -3,8 +3,6 @@ import { supabase } from "./lib/supabase";
 const API =
   import.meta.env.VITE_API_URL || "https://faithlearn-ai.onrender.com";
 
-
-  
 const defaultProfile = {
   name: "Mary",
   age: "10",
@@ -39,25 +37,40 @@ export default function App() {
     }
   };
 
+  
+
   const [session, setSession] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+      if (mounted) {
+        setSession(data.session);
+      }
     });
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("SUPABASE AUTH EVENT:", event);
       console.log("SUPABASE SESSION:", session);
 
-      setSession(session);
+      if (mounted) {
+        setSession(session);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut({ scope: "local" });
+    const { error } = await supabase.auth.signOut({
+      scope: "local",
+    });
 
     if (error) {
       console.error("Sign out error:", error);
