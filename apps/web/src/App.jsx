@@ -2,42 +2,9 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 const API =
   import.meta.env.VITE_API_URL || "https://faithlearn-ai.onrender.com";
-const signInWithFacebook = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "facebook",
-    options: {
-      redirectTo: window.location.origin,
-    },
-  });
 
-  if (error) {
-    console.error("Facebook login error:", error);
-    alert(error.message);
-  }
-}; const [session, setSession] = useState(null);
 
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session);
-  });
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    setSession(session);
-  });
-
-  return () => subscription.unsubscribe();
-}, []);
-
-const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    console.error("Sign out error:", error);
-    alert(error.message);
-  }
-};
+  
 const defaultProfile = {
   name: "Mary",
   age: "10",
@@ -58,6 +25,44 @@ const defaultProfile = {
   }
 };
 export default function App() {
+  const signInWithFacebook = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      console.error("Facebook login error:", error);
+      alert(error.message);
+    }
+  };
+
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Sign out error:", error);
+      alert(error.message);
+    }
+  };
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem("faithlearn_student_profile");
