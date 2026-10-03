@@ -10,6 +10,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1145.0",
     "@modelcontextprotocol/sdk": "^1.18.2",
+    "@smithy/node-http-handler": "^4.12.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",

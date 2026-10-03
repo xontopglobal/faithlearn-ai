@@ -3,12 +3,28 @@ dotenv.config({ path: "../.env" });
 import express from "express";
 import cors from "cors";
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { tools, callTool } from "./mcp/tools.js";
 import { handleMcp } from "./mcp/server.js";
 const app = express();
 const port = process.env.PORT || 8787;
+const bedrockToken = process.env.AWS_BEARER_TOKEN_BEDROCK;
+
 const bedrock = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: "bedrock-api-key",
+    secretAccessKey: "bedrock-api-key",
+  },
+  requestHandler: {
+    handle: async (request, context) => {
+      request.headers = request.headers || {};
+      request.headers.Authorization = `Bearer ${bedrockToken}`;
+
+      const handler = new NodeHttpHandler();
+      return handler.handle(request, context);
+    },
+  },
 });
 
 const bedrockModel =
