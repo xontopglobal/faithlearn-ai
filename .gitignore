@@ -3,3 +3,5 @@ node_modules/
 dist/
 .DS_Store
 *.log
+Add-Content .gitignore "`napps/web/.env.local"
+apps/web/.env.local
