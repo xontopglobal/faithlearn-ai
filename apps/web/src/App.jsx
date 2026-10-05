@@ -147,7 +147,6 @@ export default function App() {
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem("faithlearn_student_profile");
-
       return saved ? JSON.parse(saved) : defaultProfile;
     } catch {
       return defaultProfile;
@@ -199,6 +198,18 @@ export default function App() {
         text: `Great, ${profile.name}! I've updated your learning profile. I'll use your age, class level, and favorite subject to personalize your learning experience.`,
       },
     ]);
+  }
+
+  /* =======================================================
+     DASHBOARD ACTION HELPER
+     ======================================================= */
+
+  function startLearning(prompt) {
+    setInput(prompt);
+
+    window.setTimeout(() => {
+      document.querySelector(".composer input")?.focus();
+    }, 0);
   }
 
   /* =======================================================
@@ -288,7 +299,6 @@ Be encouraging, clear, educational, and practical.
         <header className="topbar">
           <div className="brand">
             <span className="logo">FL</span>
-
             <div>
               <strong>FaithLearn AI</strong>
               <small>Agentic Learning Companion</small>
@@ -312,10 +322,6 @@ Be encouraging, clear, educational, and practical.
       </div>
     );
   }
-
-  /* =======================================================
-     PAGE
-     ======================================================= */
 
   return (
     <div className="app">
@@ -367,10 +373,6 @@ Be encouraging, clear, educational, and practical.
             lessons, quizzes, progress checks, and next-step recommendations.
           </p>
 
-          {/* =================================================
-              FEATURE CARDS
-              ================================================= */}
-
           <div className="cards">
             <div>
               <b>AI Tutor</b>
@@ -387,6 +389,171 @@ Be encouraging, clear, educational, and practical.
               <span>Learning state</span>
             </div>
           </div>
+
+          {/* =================================================
+              STUDENT LEARNING DASHBOARD
+              ================================================= */}
+
+          <section className="learning-dashboard">
+            <div className="dashboard-welcome">
+              <div>
+                <span className="dashboard-eyebrow">
+                  YOUR LEARNING JOURNEY
+                </span>
+
+                <h2>Welcome back, {profile.name}! 👋</h2>
+
+                <p>
+                  Keep learning, keep growing, and let FaithLearn AI
+                  guide you to your next breakthrough.
+                </p>
+              </div>
+
+              <div className="learning-badge">
+                <span>🎓</span>
+                <div>
+                  <strong>{profile.classLevel}</strong>
+                  <small>Current Level</small>
+                </div>
+              </div>
+            </div>
+
+            <div className="dashboard-stats">
+              <div className="dashboard-stat">
+                <div className="stat-icon">📚</div>
+
+                <div className="stat-copy">
+                  <strong>68%</strong>
+                  <span>Learning Progress</span>
+                </div>
+
+                <div className="progress-bar">
+                  <div
+                    className="progress-fill"
+                    style={{ width: "68%" }}
+                  />
+                </div>
+              </div>
+
+              <div className="dashboard-stat">
+                <div className="stat-icon">🔥</div>
+
+                <div className="stat-copy">
+                  <strong>5 Days</strong>
+                  <span>Learning Streak</span>
+                </div>
+
+                <small>Keep it going!</small>
+              </div>
+
+              <div className="dashboard-stat">
+                <div className="stat-icon">🎯</div>
+
+                <div className="stat-copy">
+                  <strong>{profile.favoriteSubject}</strong>
+                  <span>Subject Focus</span>
+                </div>
+
+                <small>Your favorite subject</small>
+              </div>
+            </div>
+
+            <div className="next-lesson">
+              <div className="next-lesson-content">
+                <span className="lesson-label">
+                  ✨ RECOMMENDED NEXT LESSON
+                </span>
+
+                <h3>
+                  Master {profile.favoriteSubject}
+                </h3>
+
+                <p>
+                  Let FaithLearn AI create a personalized lesson
+                  based on your current level and learning goals.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    startLearning(
+                      `Recommend the next ${profile.favoriteSubject} lesson for ${profile.name} based on ${profile.classLevel}. Teach the lesson step by step.`
+                    )
+                  }
+                >
+                  Start Next Lesson →
+                </button>
+              </div>
+
+              <div className="lesson-illustration">🚀</div>
+            </div>
+
+            <div className="quick-learning">
+              <div className="quick-learning-header">
+                <div>
+                  <span className="dashboard-eyebrow">
+                    QUICK LEARNING
+                  </span>
+
+                  <h3>What would you like to do?</h3>
+                </div>
+              </div>
+
+              <div className="quick-learning-grid">
+                <button
+                  type="button"
+                  onClick={() =>
+                    startLearning(
+                      `Teach ${profile.name} an interesting ${profile.favoriteSubject} lesson appropriate for ${profile.classLevel}.`
+                    )
+                  }
+                >
+                  <span>📖</span>
+                  <strong>Teach Me</strong>
+                  <small>Start a personalized lesson</small>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    startLearning(
+                      `Create a 5-question ${profile.favoriteSubject} quiz for ${profile.name} at ${profile.classLevel} level.`
+                    )
+                  }
+                >
+                  <span>🧠</span>
+                  <strong>Create Quiz</strong>
+                  <small>Test what you know</small>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    startLearning(
+                      `Show ${profile.name}'s current learning progress and explain what ${profile.name} should improve next.`
+                    )
+                  }
+                >
+                  <span>📊</span>
+                  <strong>My Progress</strong>
+                  <small>See your learning journey</small>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    startLearning(
+                      `Recommend the next lesson for ${profile.name}. Consider the student's age ${profile.age}, level ${profile.classLevel}, and favorite subject ${profile.favoriteSubject}.`
+                    )
+                  }
+                >
+                  <span>🎯</span>
+                  <strong>Next Lesson</strong>
+                  <small>Get your next challenge</small>
+                </button>
+              </div>
+            </div>
+          </section>
 
           {/* =================================================
               STUDENT PROFILE
@@ -547,10 +714,6 @@ Be encouraging, clear, educational, and practical.
             )}
           </div>
 
-          {/* =================================================
-              QUICK SUGGESTIONS
-              ================================================= */}
-
           <div className="suggestions">
             <button
               type="button"
@@ -586,10 +749,6 @@ Be encouraging, clear, educational, and practical.
             </button>
           </div>
 
-          {/* =================================================
-              MESSAGE COMPOSER
-              ================================================= */}
-
           <div className="composer">
             <input
               value={input}
@@ -617,6 +776,256 @@ Be encouraging, clear, educational, and practical.
       <footer>
         FaithLearn AI • Open source prototype • MCP-powered education
       </footer>
+
+      <style>{`
+        .learning-dashboard {
+          margin: 32px 0;
+          padding: 28px;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 24px;
+          background: linear-gradient(145deg, rgba(20,30,55,0.96), rgba(12,18,35,0.96));
+          box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+        }
+
+        .dashboard-welcome {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          margin-bottom: 24px;
+        }
+
+        .dashboard-eyebrow {
+          display: inline-block;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 1.5px;
+          opacity: 0.7;
+          margin-bottom: 8px;
+        }
+
+        .dashboard-welcome h2 {
+          margin: 0 0 8px;
+          font-size: clamp(24px, 4vw, 36px);
+        }
+
+        .dashboard-welcome p {
+          margin: 0;
+          max-width: 650px;
+          line-height: 1.6;
+          opacity: 0.75;
+        }
+
+        .learning-badge {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 18px;
+          border-radius: 16px;
+          background: rgba(255,255,255,0.07);
+          white-space: nowrap;
+        }
+
+        .learning-badge > span {
+          font-size: 28px;
+        }
+
+        .learning-badge div {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .learning-badge small,
+        .dashboard-stat small,
+        .quick-learning-grid small {
+          opacity: 0.65;
+        }
+
+        .dashboard-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+          margin-bottom: 18px;
+        }
+
+        .dashboard-stat {
+          position: relative;
+          min-height: 120px;
+          padding: 20px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.055);
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .stat-icon {
+          font-size: 25px;
+          margin-bottom: 12px;
+        }
+
+        .stat-copy {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .stat-copy strong {
+          font-size: 22px;
+        }
+
+        .stat-copy span {
+          opacity: 0.68;
+          font-size: 13px;
+        }
+
+        .dashboard-stat > small {
+          display: block;
+          margin-top: 10px;
+          font-size: 12px;
+        }
+
+        .progress-bar {
+          height: 7px;
+          margin-top: 13px;
+          overflow: hidden;
+          border-radius: 99px;
+          background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, #6ee7b7, #60a5fa);
+        }
+
+        .next-lesson {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          padding: 24px;
+          margin-bottom: 24px;
+          border-radius: 20px;
+          background: linear-gradient(135deg, rgba(96,165,250,0.14), rgba(110,231,183,0.08));
+          border: 1px solid rgba(96,165,250,0.18);
+        }
+
+        .lesson-label {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 1.3px;
+          opacity: 0.75;
+        }
+
+        .next-lesson h3 {
+          margin: 8px 0;
+          font-size: 25px;
+        }
+
+        .next-lesson p {
+          max-width: 650px;
+          line-height: 1.6;
+          opacity: 0.72;
+          margin-bottom: 16px;
+        }
+
+        .next-lesson button {
+          border: 0;
+          border-radius: 12px;
+          padding: 12px 18px;
+          cursor: pointer;
+          font-weight: 800;
+          background: #fff;
+          color: #111827;
+        }
+
+        .lesson-illustration {
+          font-size: 72px;
+          padding: 20px;
+        }
+
+        .quick-learning-header h3 {
+          margin: 0 0 16px;
+          font-size: 20px;
+        }
+
+        .quick-learning-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+
+        .quick-learning-grid button {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 7px;
+          text-align: left;
+          padding: 18px;
+          min-height: 135px;
+          border-radius: 16px;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.045);
+          color: inherit;
+          cursor: pointer;
+          transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .quick-learning-grid button:hover {
+          transform: translateY(-3px);
+          background: rgba(255,255,255,0.09);
+        }
+
+        .quick-learning-grid button > span {
+          font-size: 27px;
+        }
+
+        .quick-learning-grid strong {
+          font-size: 15px;
+        }
+
+        .quick-learning-grid small {
+          line-height: 1.4;
+        }
+
+        @media (max-width: 900px) {
+          .dashboard-stats,
+          .quick-learning-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .dashboard-welcome,
+          .next-lesson {
+            align-items: flex-start;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .learning-dashboard {
+            padding: 18px;
+            border-radius: 18px;
+          }
+
+          .dashboard-welcome,
+          .next-lesson {
+            flex-direction: column;
+          }
+
+          .learning-badge {
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .dashboard-stats,
+          .quick-learning-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .lesson-illustration {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
