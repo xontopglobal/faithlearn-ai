@@ -135,13 +135,18 @@ export default function App() {
 
       setSession(null);
 
-      // Immediately leave the protected application view
+      /*
+       * Immediately return the browser to the application root.
+       * Because the session has been cleared, the app will render
+       * the clean login screen below.
+       */
       window.location.replace(window.location.origin);
     } catch (error) {
       console.error("Sign out exception:", error);
       alert("Sign out failed. Please try again.");
     }
   };
+
   /* =======================================================
      STUDENT PROFILE
      ======================================================= */
@@ -301,6 +306,7 @@ Be encouraging, clear, educational, and practical.
         <header className="topbar">
           <div className="brand">
             <span className="logo">FL</span>
+
             <div>
               <strong>FaithLearn AI</strong>
               <small>Agentic Learning Companion</small>
@@ -325,6 +331,89 @@ Be encouraging, clear, educational, and practical.
     );
   }
 
+  /* =======================================================
+     CLEAN LOGIN SCREEN
+     ======================================================= */
+
+  if (!session) {
+    return (
+      <div className="app">
+        <main
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <section
+            style={{
+              width: "100%",
+              maxWidth: "460px",
+              textAlign: "center",
+              padding: "40px 28px",
+              borderRadius: "24px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div
+              style={{
+                width: "70px",
+                height: "70px",
+                margin: "0 auto 20px",
+                borderRadius: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "24px",
+                fontWeight: "800",
+                background: "rgba(96,165,250,0.15)",
+              }}
+            >
+              FL
+            </div>
+
+            <h1>Welcome to FaithLearn AI</h1>
+
+            <p
+              style={{
+                lineHeight: "1.6",
+                opacity: 0.7,
+                marginBottom: "26px",
+              }}
+            >
+              Your AI-powered learning companion for personalized
+              lessons, quizzes, progress, and recommendations.
+            </p>
+
+            <button
+              type="button"
+              onClick={signInWithFacebook}
+              style={{
+                width: "100%",
+                padding: "14px 20px",
+                border: "0",
+                borderRadius: "12px",
+                cursor: "pointer",
+                fontWeight: "800",
+                fontSize: "15px",
+              }}
+            >
+              Continue with Facebook
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  /* =======================================================
+     AUTHENTICATED FAITHLEARN APPLICATION
+     ======================================================= */
+
   return (
     <div className="app">
       <header className="topbar">
@@ -339,19 +428,13 @@ Be encouraging, clear, educational, and practical.
 
         <span className="status">● AI Online</span>
 
-        {session ? (
-          <div className="auth-area">
-            <span>Logged in with Facebook</span>
+        <div className="auth-area">
+          <span>Logged in with Facebook</span>
 
-            <button type="button" onClick={signOut}>
-              Sign out
-            </button>
-          </div>
-        ) : (
-          <button type="button" onClick={signInWithFacebook}>
-            Continue with Facebook
+          <button type="button" onClick={signOut}>
+            Sign out
           </button>
-        )}
+        </div>
       </header>
 
       <main className="layout">
@@ -413,6 +496,7 @@ Be encouraging, clear, educational, and practical.
 
               <div className="learning-badge">
                 <span>🎓</span>
+
                 <div>
                   <strong>{profile.classLevel}</strong>
                   <small>Current Level</small>
@@ -779,13 +863,21 @@ Be encouraging, clear, educational, and practical.
         FaithLearn AI • Open source prototype • MCP-powered education
       </footer>
 
+      {/* =====================================================
+          STUDENT DASHBOARD STYLES
+          ===================================================== */}
+
       <style>{`
         .learning-dashboard {
           margin: 32px 0;
           padding: 28px;
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 24px;
-          background: linear-gradient(145deg, rgba(20,30,55,0.96), rgba(12,18,35,0.96));
+          background: linear-gradient(
+            145deg,
+            rgba(20,30,55,0.96),
+            rgba(12,18,35,0.96)
+          );
           box-shadow: 0 20px 50px rgba(0,0,0,0.18);
         }
 
@@ -897,7 +989,11 @@ Be encouraging, clear, educational, and practical.
         .progress-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #6ee7b7, #60a5fa);
+          background: linear-gradient(
+            90deg,
+            #6ee7b7,
+            #60a5fa
+          );
         }
 
         .next-lesson {
@@ -908,7 +1004,11 @@ Be encouraging, clear, educational, and practical.
           padding: 24px;
           margin-bottom: 24px;
           border-radius: 20px;
-          background: linear-gradient(135deg, rgba(96,165,250,0.14), rgba(110,231,183,0.08));
+          background: linear-gradient(
+            135deg,
+            rgba(96,165,250,0.14),
+            rgba(110,231,183,0.08)
+          );
           border: 1px solid rgba(96,165,250,0.18);
         }
 
@@ -970,7 +1070,9 @@ Be encouraging, clear, educational, and practical.
           background: rgba(255,255,255,0.045);
           color: inherit;
           cursor: pointer;
-          transition: transform 0.2s ease, background 0.2s ease;
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease;
         }
 
         .quick-learning-grid button:hover {
