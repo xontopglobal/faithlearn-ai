@@ -134,12 +134,14 @@ export default function App() {
       }
 
       setSession(null);
+
+      // Immediately leave the protected application view
+      window.location.replace(window.location.origin);
     } catch (error) {
       console.error("Sign out exception:", error);
       alert("Sign out failed. Please try again.");
     }
   };
-
   /* =======================================================
      STUDENT PROFILE
      ======================================================= */
