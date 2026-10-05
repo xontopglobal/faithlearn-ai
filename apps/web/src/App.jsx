@@ -1,63 +1,113 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
 const API =
   import.meta.env.VITE_API_URL || "https://faithlearn-ai.onrender.com";
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    flowType: "pkce",
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
+
+/* =========================================================
+   DEFAULT STUDENT PROFILE
+   ========================================================= */
 
 const defaultProfile = {
   name: "Mary",
   age: "10",
   classLevel: "Primary 5",
-  favoriteSubject: "Mathematics"
+  favoriteSubject: "Mathematics",
 };
-  {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "facebook",
-    options: {
-      redirectTo: window.location.origin,
-    },
-  });
 
-  if (error) {
-    console.error("Facebook login error:", error);
-    alert(error.message);
-  }
-};
+/* =========================================================
+   APP
+   ========================================================= */
+
 export default function App() {
-  const signInWithFacebook = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "facebook",
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
+  /* =======================================================
+     AUTH STATE
+     ======================================================= */
 
-    if (error) {
-      console.error("Facebook login error:", error);
-      alert(error.message);
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  /* =======================================================
+     FACEBOOK LOGIN
+     ======================================================= */
+
+  const signInWithFacebook = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "facebook",
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) {
+        console.error("Facebook login error:", error);
+        alert(error.message);
+      }
+    } catch (error) {
+      console.error("Facebook login exception:", error);
+      alert("Facebook login failed. Please try again.");
     }
   };
 
-  
-
-  const [session, setSession] = useState(null);
+  /* =======================================================
+     LOAD SESSION + LISTEN FOR AUTH CHANGES
+     ======================================================= */
 
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) {
-        setSession(data.session);
+    const loadSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Get session error:", error);
+        }
+
+        if (mounted) {
+          setSession(session);
+          setAuthLoading(false);
+        }
+      } catch (error) {
+        console.error("Session loading error:", error);
+
+        if (mounted) {
+          setSession(null);
+          setAuthLoading(false);
+        }
       }
-    });
+    };
+
+    loadSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       console.log("SUPABASE AUTH EVENT:", event);
-      console.log("SUPABASE SESSION:", session);
 
       if (mounted) {
-        setSession(session);
+        setSession(newSession);
+        setAuthLoading(false);
       }
     });
 
@@ -67,19 +117,37 @@ export default function App() {
     };
   }, []);
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut({
-      scope: "local",
-    });
+  /* =======================================================
+     SIGN OUT
+     ======================================================= */
 
-    if (error) {
-      console.error("Sign out error:", error);
-      alert(error.message);
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut({
+        scope: "local",
+      });
+
+      if (error) {
+        console.error("Sign out error:", error);
+        alert(error.message);
+        return;
+      }
+
+      setSession(null);
+    } catch (error) {
+      console.error("Sign out exception:", error);
+      alert("Sign out failed. Please try again.");
     }
   };
+
+  /* =======================================================
+     STUDENT PROFILE
+     ======================================================= */
+
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem("faithlearn_student_profile");
+
       return saved ? JSON.parse(saved) : defaultProfile;
     } catch {
       return defaultProfile;
@@ -88,22 +156,38 @@ export default function App() {
 
   const [editingProfile, setEditingProfile] = useState(false);
 
+  /* =======================================================
+     CHAT
+     ======================================================= */
+
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: `Hello ${profile.name}! I'm FaithLearn AI. Ask me to teach a lesson, create a quiz, show your progress, or recommend your next lesson.`
-    }
+      text: `Hello ${profile.name}! I'm FaithLearn AI. Ask me to teach a lesson, create a quiz, show your progress, or recommend your next lesson.`,
+    },
   ]);
 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
 
+  /* =======================================================
+     SAVE PROFILE TO LOCAL STORAGE
+     ======================================================= */
+
   useEffect(() => {
-    localStorage.setItem(
-      "faithlearn_student_profile",
-      JSON.stringify(profile)
-    );
+    try {
+      localStorage.setItem(
+        "faithlearn_student_profile",
+        JSON.stringify(profile)
+      );
+    } catch (error) {
+      console.error("Could not save student profile:", error);
+    }
   }, [profile]);
+
+  /* =======================================================
+     SAVE PROFILE
+     ======================================================= */
 
   function saveProfile() {
     setEditingProfile(false);
@@ -112,10 +196,14 @@ export default function App() {
       ...m,
       {
         role: "assistant",
-        text: `Great, ${profile.name}! I've updated your learning profile. I'll use your age, class level, and favorite subject to personalize your learning experience.`
-      }
+        text: `Great, ${profile.name}! I've updated your learning profile. I'll use your age, class level, and favorite subject to personalize your learning experience.`,
+      },
     ]);
   }
+
+  /* =======================================================
+     SEND CHAT MESSAGE
+     ======================================================= */
 
   async function send() {
     const text = input.trim();
@@ -128,8 +216,8 @@ export default function App() {
       ...m,
       {
         role: "user",
-        text
-      }
+        text,
+      },
     ]);
 
     setBusy(true);
@@ -137,27 +225,29 @@ export default function App() {
     try {
       const personalizedMessage = `
 Student Profile:
+
 Name: ${profile.name}
 Age: ${profile.age}
 Class/Level: ${profile.classLevel}
 Favorite Subject: ${profile.favoriteSubject}
-<button onClick={signInWithFacebook}>
-  Continue with Facebook
-</button>
+
 Student's Request:
+
 ${text}
 
-Please personalize your response for this student. Explain concepts at an appropriate level for the student's age and class. Be encouraging, clear, educational, and practical.
+Please personalize your response for this student.
+Explain concepts at an appropriate level for the student's age and class.
+Be encouraging, clear, educational, and practical.
       `.trim();
 
       const response = await fetch(`${API}/api/chat`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: personalizedMessage
-        })
+          message: personalizedMessage,
+        }),
       });
 
       const data = await response.json();
@@ -170,30 +260,65 @@ Please personalize your response for this student. Explain concepts at an approp
         ...m,
         {
           role: "assistant",
-          text: data.response
-        }
+          text: data.response,
+        },
       ]);
     } catch (error) {
-      console.error(error);
+      console.error("Chat error:", error);
 
       setMessages((m) => [
         ...m,
         {
           role: "assistant",
-          text: "I couldn't reach FaithLearn AI. Please make sure the API server is running."
-        }
+          text: "I couldn't reach FaithLearn AI. Please make sure the API server is running.",
+        },
       ]);
     } finally {
       setBusy(false);
     }
   }
 
+  /* =======================================================
+     LOADING AUTH
+     ======================================================= */
+
+  if (authLoading) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="brand">
+            <span className="logo">FL</span>
+
+            <div>
+              <strong>FaithLearn AI</strong>
+              <small>Agentic Learning Companion</small>
+            </div>
+          </div>
+
+          <span className="status">● Checking login...</span>
+        </header>
+
+        <main className="layout">
+          <section className="hero">
+            <h1>
+              Learning that
+              <br />
+              <span>understands context.</span>
+            </h1>
+
+            <p>Checking your secure Facebook session...</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  /* =======================================================
+     PAGE
+     ======================================================= */
+
   return (
     <div className="app">
-      <button onClick={signInWithFacebook}>
-        Continue with Facebook
-      </button>
-
       <header className="topbar">
         <div className="brand">
           <span className="logo">FL</span>
@@ -205,19 +330,27 @@ Please personalize your response for this student. Explain concepts at an approp
         </div>
 
         <span className="status">● AI Online</span>
+
         {session ? (
           <div className="auth-area">
             <span>Logged in with Facebook</span>
-            <button onClick={signOut}>Sign out</button>
+
+            <button type="button" onClick={signOut}>
+              Sign out
+            </button>
           </div>
         ) : (
-          <button onClick={signInWithFacebook}>
+          <button type="button" onClick={signInWithFacebook}>
             Continue with Facebook
           </button>
         )}
       </header>
 
       <main className="layout">
+        {/* =================================================
+            HERO
+            ================================================= */}
+
         <section className="hero">
           <span className="eyebrow">
             ALEXA+ HACKATHON • AI EDUCATION
@@ -233,6 +366,10 @@ Please personalize your response for this student. Explain concepts at an approp
             FaithLearn AI turns a simple conversation into personalized
             lessons, quizzes, progress checks, and next-step recommendations.
           </p>
+
+          {/* =================================================
+              FEATURE CARDS
+              ================================================= */}
 
           <div className="cards">
             <div>
@@ -250,6 +387,10 @@ Please personalize your response for this student. Explain concepts at an approp
               <span>Learning state</span>
             </div>
           </div>
+
+          {/* =================================================
+              STUDENT PROFILE
+              ================================================= */}
 
           <div className="profile-card">
             <div className="profile-header">
@@ -288,6 +429,10 @@ Please personalize your response for this student. Explain concepts at an approp
             </div>
           </div>
 
+          {/* =================================================
+              PROFILE EDITOR
+              ================================================= */}
+
           {editingProfile && (
             <div className="profile-form">
               <h3>Personalize Your Learning</h3>
@@ -300,7 +445,7 @@ Please personalize your response for this student. Explain concepts at an approp
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      name: e.target.value
+                      name: e.target.value,
                     })
                   }
                   placeholder="Enter student's name"
@@ -318,7 +463,7 @@ Please personalize your response for this student. Explain concepts at an approp
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      age: e.target.value
+                      age: e.target.value,
                     })
                   }
                   placeholder="Student age"
@@ -333,7 +478,7 @@ Please personalize your response for this student. Explain concepts at an approp
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      classLevel: e.target.value
+                      classLevel: e.target.value,
                     })
                   }
                   placeholder="e.g. Primary 5"
@@ -348,7 +493,7 @@ Please personalize your response for this student. Explain concepts at an approp
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      favoriteSubject: e.target.value
+                      favoriteSubject: e.target.value,
                     })
                   }
                   placeholder="e.g. Mathematics"
@@ -363,16 +508,17 @@ Please personalize your response for this student. Explain concepts at an approp
                   Cancel
                 </button>
 
-                <button
-                  type="button"
-                  onClick={saveProfile}
-                >
+                <button type="button" onClick={saveProfile}>
                   Save Profile
                 </button>
               </div>
             </div>
           )}
         </section>
+
+        {/* =================================================
+            CHAT
+            ================================================= */}
 
         <section className="chat">
           <div className="chathead">
@@ -400,6 +546,10 @@ Please personalize your response for this student. Explain concepts at an approp
               </div>
             )}
           </div>
+
+          {/* =================================================
+              QUICK SUGGESTIONS
+              ================================================= */}
 
           <div className="suggestions">
             <button
@@ -435,6 +585,10 @@ Please personalize your response for this student. Explain concepts at an approp
               Teach fractions
             </button>
           </div>
+
+          {/* =================================================
+              MESSAGE COMPOSER
+              ================================================= */}
 
           <div className="composer">
             <input
