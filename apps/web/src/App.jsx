@@ -81,22 +81,14 @@ export default function App() {
      ======================================================= */
 
 
-
   const [session, setSession] = useState(null);
-
   const [authLoading, setAuthLoading] = useState(true);
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [authMode, setAuthMode] = useState("signin");
-
   const [authBusy, setAuthBusy] = useState(false);
-
-
-
-
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   /* =======================================================
 
@@ -282,6 +274,68 @@ export default function App() {
 
   };
 
+    const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      alert("Please enter your email address first.");
+      return;
+    }
+
+    setAuthBusy(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo: window.location.origin,
+        }
+      );
+
+      if (error) throw error;
+
+      alert("Password reset instructions have been sent to your email.");
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      alert(error.message || "Unable to send password reset email.");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+
+    if (password.length < 6) {
+      alert("Your new password must contain at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Your passwords do not match.");
+      return;
+    }
+
+    setAuthBusy(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+
+      if (error) throw error;
+
+      alert("Your password has been updated successfully.");
+
+      setRecoveryMode(false);
+      setPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Password update error:", error);
+      alert(error.message || "Unable to update your password.");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
   /* =======================================================
 
      LOAD SESSION + LISTEN FOR AUTH CHANGES
@@ -355,21 +409,17 @@ export default function App() {
       data: { subscription },
 
     } = supabase.auth.onAuthStateChange((event, newSession) => {
-
       console.log("SUPABASE AUTH EVENT:", event);
 
-
-
       if (mounted) {
+        if (event === "PASSWORD_RECOVERY") {
+          setRecoveryMode(true);
+        }
 
         setSession(newSession);
-
         setAuthLoading(false);
-
       }
-
     });
-
 
 
     return () => {
@@ -817,7 +867,63 @@ Be encouraging, clear, educational, and practical.
      CLEAN LOGIN SCREEN
 
      ======================================================= */
+  if (recoveryMode) {
+    return (
+      <div className="app">
+        <main
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <section
+            style={{
+              width: "100%",
+              maxWidth: "460px",
+              textAlign: "center",
+              padding: "40px 28px",
+              borderRadius: "24px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            <h1>Reset Your Password</h1>
 
+            <p>Choose a new password for your FaithLearn AI account.</p>
+
+            <form onSubmit={handleUpdatePassword}>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="New password"
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+
+              <button type="submit" disabled={authBusy}>
+                {authBusy ? "Updating..." : "Update Password"}
+              </button>
+            </form>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
 
   if (!session) {
