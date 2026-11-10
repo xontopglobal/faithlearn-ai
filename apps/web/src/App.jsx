@@ -1204,14 +1204,24 @@ Be encouraging, clear, educational, and practical.
 
 
         <div className="auth-area">
+          <span>
+            Logged in with{" "}
+            <strong>
+              {session?.user?.app_metadata?.provider === "facebook"
+                ? "Facebook"
+                : session?.user?.app_metadata?.provider === "google"
+                  ? "Google"
+                  : "Email"}
+            </strong>
+          </span>
+
           <span className="auth-email">
             <strong>Account:</strong>{" "}
             {session?.user?.email || "Email not available"}
           </span>
         </div>
-      </header>
-
-      <main className="layout">
+      </header >
+      <main className="layout">   correct it
 
         {/* =================================================
 
