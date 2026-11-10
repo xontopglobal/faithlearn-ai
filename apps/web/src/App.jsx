@@ -823,6 +823,7 @@ Be encouraging, clear, educational, and practical.
             </div>
 
           </div>
+    
 
 
 
@@ -1202,32 +1203,26 @@ Be encouraging, clear, educational, and practical.
 
 
 
-        <div className="auth-area">
 
+        <div className="auth-area">
           <span>
             Logged in with{" "}
-            {session?.user?.app_metadata?.provider === "facebook"
-              ? "Facebook"
-              : session?.user?.app_metadata?.provider === "google"
-                ? "Google"
-                : "Email"}
+            <strong>
+              {session?.user?.app_metadata?.provider === "facebook"
+                ? "Facebook"
+                : session?.user?.app_metadata?.provider === "google"
+                  ? "Google"
+                  : "Email"}
+            </strong>
           </span>
 
-
-
-          <button type="button" onClick={signOut}>
-
-            Sign out
-
-          </button>
-
-        </div>
-
-      </header>
-
-
-
-      <main className="layout">
+          <span className="auth-email">
+            <strong>Account:</strong>{" "}
+            {session?.user?.email || "Email not available"}
+          </span>
+    </div>
+      </header >
+<main className="layout">
 
         {/* =================================================
 
