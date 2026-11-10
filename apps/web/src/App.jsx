@@ -1116,7 +1116,15 @@ Be encouraging, clear, educational, and practical.
 
               </form>
 
-
+              {authMode === "signin" && (
+                <button
+                  type="button"
+                  className="auth-switch"
+                  onClick={handleForgotPassword}
+                >
+                  Forgot Password?
+                </button>
+              )}
 
               <button
 
